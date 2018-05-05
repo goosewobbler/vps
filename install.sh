@@ -26,7 +26,7 @@ declare -r CRYPTOS=`ls -l config/ | egrep '^d' | awk '{print $9}' | xargs echo -
 declare -r DATE_STAMP="$(date +%y-%m-%d-%s)"
 declare -r SCRIPTPATH=$( cd $(dirname ${BASH_SOURCE[0]}) > /dev/null; pwd -P )
 declare -r MASTERPATH="$(dirname "${SCRIPTPATH}")"
-declare -r SCRIPT_VERSION="v0.9.6"
+declare -r SCRIPT_VERSION="v0.9.7"
 declare -r SCRIPT_LOGFILE="/tmp/nodemaster_${DATE_STAMP}_out.log"
 declare -r IPV4_DOC_LINK="https://www.vultr.com/docs/add-secondary-ipv4-address"
 declare -r DO_NET_CONF="/etc/network/interfaces.d/50-cloud-init.cfg"
@@ -92,16 +92,16 @@ function show_help(){
 # /* no parameters, checks if we are running on a supported Ubuntu release */
 #
 function check_distro() {
-    # currently only for Ubuntu 16.04
+    # currently only for Ubuntu 16.04 & 18.04
     if [[ -r /etc/os-release ]]; then
         . /etc/os-release
-        if [[ "${VERSION_ID}" != "16.04" ]]; then
-            echo "This script only supports ubuntu 16.04 LTS, exiting."
+        if [[ "${VERSION_ID}" != "16.04" ]] && [[ "${VERSION_ID}" != "18.04" ]] ; then
+            echo "This script only supports Ubuntu 16.04 & 18.04 LTS, exiting."
             exit 1
         fi
     else
         # no, thats not ok!
-        echo "This script only supports ubuntu 16.04 LTS, exiting."
+        echo "This script only supports Ubuntu 16.04 & 18.04 LTS, exiting."
         exit 1
     fi
 }
@@ -113,13 +113,19 @@ function install_packages() {
     # development and build packages
     # these are common on all cryptos
     echo "* Package installation!"
-    apt-get -qq -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update
-    apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install build-essential g++ \
-    protobuf-compiler libboost-all-dev autotools-dev \
-    automake libcurl4-openssl-dev libboost-all-dev libssl-dev libdb++-dev \
-    make autoconf automake libtool git apt-utils libprotobuf-dev pkg-config \
-    libcurl3-dev libudev-dev libqrencode-dev bsdmainutils pkg-config libssl-dev \
-    libgmp3-dev libevent-dev jp2a pv virtualenv	&>> ${SCRIPT_LOGFILE}
+    add-apt-repository -yu ppa:bitcoin/bitcoin  &>> ${SCRIPT_LOGFILE}
+    apt-get -qq -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true update  &>> ${SCRIPT_LOGFILE}
+    apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install build-essential \
+    protobuf-compiler libboost-all-dev autotools-dev automake libcurl4-openssl-dev \
+    libboost-all-dev libssl-dev make autoconf libtool git apt-utils g++ \
+    libprotobuf-dev pkg-config libcurl3-dev libudev-dev libqrencode-dev bsdmainutils \
+    pkg-config libssl-dev libgmp3-dev libevent-dev jp2a pv virtualenv libdb4.8-dev libdb4.8++-dev  &>> ${SCRIPT_LOGFILE}
+    
+    # only for 18.04 // openssl
+    if [[ "${VERSION_ID}" == "18.04" ]] ; then
+       apt-get -qqy -o=Dpkg::Use-Pty=0 -o=Acquire::ForceIPv4=true install libssl1.0-dev
+    fi    
+    
 }
 
 #
@@ -417,7 +423,7 @@ function source_config() {
     check_distro
 
     if [ -f ${SETUP_CONF_FILE} ]; then
-        echo "Script version ${SCRIPT_VERSION}, you picked: $(tput bold)$(tput setaf 2) ${project} $(tput sgr0)"
+        echo "Script version ${SCRIPT_VERSION}, you picked: $(tput bold)$(tput setaf 2) ${project} $(tput sgr0), running on Ubuntu ${VERSION_ID}"
         echo "apply config file for ${project}"	&>> ${SCRIPT_LOGFILE}
         source "${SETUP_CONF_FILE}"
 
