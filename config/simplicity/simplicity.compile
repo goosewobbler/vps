@@ -10,7 +10,7 @@ cd ../leveldb
 chmod +x ./build_detect_platform
 # sh build_detect_platform build_config.mk .
 cd ..
-make -f makefile.unix
+make -f makefile.unix USE_UPNP=-
 strip simplicityd
 LD_LIBRARY_PATH=/usr/local/lib
 export LD_LIBRARY_PATH
