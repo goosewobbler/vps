@@ -5,12 +5,11 @@ chmod +x autogen.sh
 ./autogen.sh
 ./configure --enable-module-recovery
 make && make install
-ldconfig
 cd ../leveldb
 chmod +x ./build_detect_platform
 sh build_detect_platform build_config.mk .
 cd ..
-make -f makefile.unix USE_UPNP=-
+make -f makefile.unix -j1
 strip simplicityd
 LD_LIBRARY_PATH=/usr/local/lib
 export LD_LIBRARY_PATH
