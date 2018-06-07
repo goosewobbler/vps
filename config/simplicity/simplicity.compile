@@ -5,7 +5,7 @@ chmod +x autogen.sh
 ./autogen.sh
 ./configure --enable-module-recovery
 make && make install
-# ldconfig
+ldconfig
 cd ../leveldb
 chmod +x ./build_detect_platform
 sh build_detect_platform build_config.mk .
