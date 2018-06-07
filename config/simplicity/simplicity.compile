@@ -8,7 +8,7 @@ make && make install
 # ldconfig
 cd ../leveldb
 chmod +x ./build_detect_platform
-# sh build_detect_platform build_config.mk .
+sh build_detect_platform build_config.mk .
 cd ..
 make -f makefile.unix USE_UPNP=-
 strip simplicityd
